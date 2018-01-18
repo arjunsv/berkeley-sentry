@@ -16,6 +16,7 @@
         margin: 0;
         padding: 0;
       }
+
     </style>
   </head>
   <body>
@@ -26,14 +27,12 @@
       let circleSet = new Set();
       var audio = new Audio('ping3.wav');
       var homicideAudio = new Audio('homicide.mp3');
-      var robberyAudio = new Audio('robbery.mp3')
+      var robberyAudio = new Audio('robbery.mp3');
+      var assaultandbatteryAudio = new Audio('assaultandbattery.mp3');
+      var burglaryAudio = new Audio('burglary.mp3');
       // First, create an object containing LatLng and population for each crime.
       var crimemap = {};
-
-      // var crimeList = [{"larcency": {lat: 37.869363, lng: -122.268028}},  
-      //                  {"assault": {lat: 37.869685, lng: -122.272804}},
-      //                  {"domesticviolence": {lat: 37.869482, lng: -122.243}},
-      //                  {"vehiclestolen": {lat: 37.864703, lng: -122.299654}}];
+      var jsonmap = {};
 
       function setIntervalLimited(callback, interval, x) {
         for (var i = 0; i < x; i++) {
@@ -41,38 +40,10 @@
         }
       }
 
-      function httpGet(theUrl, callBack, id) {
-         function callBack(result) {
-            result.sort(function(a, b){
-            var keyA = new Date(a.eventdt),
-                keyB = new Date(b.eventdt);
-            // Compare the 2 dates
-            if(keyA < keyB) return 1;
-            if(keyA > keyB) return -1;
-            return 0;
-            });
-          for (var i=0; i<20; i++) {
-            crime = result[i];
-            var title = crime.offense + " " + crime.caseno;
-            crimemap[title] = {center: {lat: crime.block_location.coordinates[1], lng: crime.block_location.coordinates[0]}};
-            }
-          }
-
-
-          var xmlHttp = new XMLHttpRequest();
-          xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
-          xmlHttp.onreadystatechange = function() {
-          if (this.responseText && this.status == 200) {
-              callBack(JSON.parse(this.responseText));
-            }
-          }
-          xmlHttp.send( null );
-      }
-
       function initMap() {
         // Create the map.
         var map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: 37.8716, lng: -122.2590},
+          center: {lat: 37.8718, lng: -122.2590},
           zoom: 15,
           styles: [
             {elementType: 'geometry', stylers: [{color: '#242f3e'}]},
@@ -160,85 +131,137 @@
             },
           ]
         });
-     
-        // test circle
-        setTimeout(function(){ 
-          crimemap.MURDER = {center: {lat: 37.861363, lng: -122.268028}};
-          console.log("hi");
-          console.log(crimemap);
-        }, 10000);
+
+        function httpGet(theUrl, callBack, id) {
+         function callBack(result) {
+            result.sort(function(a, b){
+            var keyA = new Date(a.eventdt),
+                keyB = new Date(b.eventdt);
+            // Compare the 2 dates
+            if(keyA < keyB) return 1;
+            if(keyA > keyB) return -1;
+            return 0;
+            });
+          console.log("request made")
+          for (var i=0; i<20; i++) {
+            crime = result[i];
+            console.log(crime);
+            var title = crime.offense + " " + crime.caseno;
+            var crimePos = {lat: crime.block_location.coordinates[1], lng: crime.block_location.coordinates[0]};
+            crimemap[title] = {center: crimePos};
+            jsonmap[title] = crime;
+            }
+          }
+
+          var xmlHttp = new XMLHttpRequest();
+          xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
+          xmlHttp.onreadystatechange = function() {
+          if (this.responseText && this.status == 200) {
+              callBack(JSON.parse(this.responseText));
+            }
+          }
+          xmlHttp.send( null );
+      }
         // Will periodically check crimemap for new circles and add them;
-        setInterval(function(){ spawnCircles(crimemap, map);}, 3000);
+        
         // var transitLayer = new google.maps.TransitLayer();
         // transitLayer.setMap(map);
         // var trafficLayer = new google.maps.TrafficLayer();
         // trafficLayer.setMap(map)
         httpGet("https://data.cityofberkeley.info/resource/s24d-wsnp.json");
-        setInterval(function(){ httpGet("https://data.cityofberkeley.info/resource/s24d-wsnp.json");}, 100000);
+        setInterval(function(){ spawnCircles(crimemap, map);}, 3000);
+        setInterval(function(){ httpGet("https://data.cityofberkeley.info/resource/s24d-wsnp.json");}, 10000);
       }
 
 
     function spawnCircles(circlemap, map){
       for (var crime in crimemap) {
-          // Add the circle for this crime to the map.
-          if (!circleSet.has(crime)) {
-            var type = crime.split(" ")[0];
-            console.log(type);
-            createCircle(crimemap[crime], map, type);
 
+          // Add the circle for this crime to the map.
+                  // setTimeout(function(){ alert("Hello"); }, 3000);
+
+          if (!circleSet.has(crime)) {
+            createCircle(crimemap[crime], map, crime);
             circleSet.add(crime);
             audio.play();
           }
         }
 
-        function createCircle(city, map, type) {
-          var _radius = 50;
-          var rMin = _radius * 4.95 / 5;
-          var rMax = _radius;
+        function createCircle(crimeLoc, map, title) {
+          var type = title.split(" ")[0];
+          var _radius = 30;
           var direction = 1;
-          if (type === 'MURDER') {
-            homicideAudio.play();
-            var color = "#FF0000";
-          } else if (type === 'ROBBERY') {
-            robberyAudio.play();
-            var color = "#FFCA00";
-          } else if (type === 'THEFT') {
-            var color = "#F2FF00";
-          } else {
-            var color = "#00E1FF";
+          var growthFactor = 1.0;
+          var fillOpacity = 0.3;
+          console.log(type);
+          switch(type) {
+            case 'MURDER':
+              var color = '#FF0000';
+              _radius = 130;
+              homicideAudio.play();
+              growthFactor = 3.4;
+              break;
+            case 'BURGLARY':
+              var color = '#FF8900';
+              _radius = 50;
+              setTimeout(function(){  burglaryAudio.play(); }, 6000);
+              growthFactor = 0.85;
+              break;
+            case 'ASSAULT/BATTERY':
+              var color = '#FF2D00';
+              _radius = 70;
+              growthFactor = 1.7;
+              setTimeout(function(){  assaultandbatteryAudio.play(); }, 3000);
+              break;
+            case 'THEFT':
+              var color = '#FFE800';
+              break;
+            default:
+              var color = '#D6FF00';
+              growthFactor = 1.02;
+              break;
           }
+          var rMin = _radius;
+          var rMax = _radius;
+    
           var circleOption = {
-            center: city.center,
+            center: crimeLoc.center,
             fillColor: color,
-            fillOpacity: 0.2,
+            fillOpacity: fillOpacity,
             map: map,
-            radius: 50,
+            radius: _radius,
             strokeColor: color,
-            strokeOpacity: 1,
+            strokeOpacity: 1.0,
             strokeWeight: 0.5
           };
           var circle = new google.maps.Circle(circleOption);
+          var infowindow = new google.maps.InfoWindow();
+          var circleJSON = jsonmap[title];
+          console.log(circleJSON);
+          var labelText = "<h4>" + circleJSON.offense + "</h4>" + "LOCATION: " + circleJSON.blkaddr + "<br> DATE: " + circleJSON.eventdt.slice(0,10) + "<br> TIME: " + circleJSON.eventtm;
 
-          var pulseCount = 0;
+          google.maps.event.addListener(circle, 'mouseover', function(e) {
+            infowindow.setContent(labelText);
+            infowindow.setPosition(this.getCenter());
+            infowindow.open(map);
+            google.maps.event.addListenerOnce(map, 'mousemove', function(e) {
+            infowindow.close();
+          });
+          });
+
           var circleTimer = setInterval(function() {
-            if (pulseCount > 4) {
-              clearInterval();
-            }
             var radius = circle.getRadius();
-
-            if ((radius > rMax) || (radius < rMin)) {
-              direction *= -1;
+            if (circleOption.fillOpacity > fillOpacity || circleOption.fillOpacity < 0.1) {
+              growthFactor = 1/growthFactor;
             }
-            var _par = (radius / _radius) - 0.4;
-
-            circleOption.radius = radius + direction * 3;
-            circleOption.fillOpacity = 0.6 * _par;
-
+            circleOption.fillOpacity *= growthFactor;
             circle.setOptions(circleOption);
-            pulseCount += 1;
-          }, 120, 500);
+          }, 100);
         }
     }
+
+
+
 
     </script>
     <script async defer
