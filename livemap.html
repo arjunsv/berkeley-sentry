@@ -41,7 +41,6 @@
       }
 
       function initMap() {
-        // Create the map.
         var map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 37.8718, lng: -122.2590},
           zoom: 15,
@@ -152,7 +151,6 @@
             jsonmap[title] = crime;
             }
           }
-
           var xmlHttp = new XMLHttpRequest();
           xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
           xmlHttp.onreadystatechange = function() {
@@ -162,31 +160,19 @@
           }
           xmlHttp.send( null );
       }
-        // Will periodically check crimemap for new circles and add them;
-        
-        // var transitLayer = new google.maps.TransitLayer();
-        // transitLayer.setMap(map);
-        // var trafficLayer = new google.maps.TrafficLayer();
-        // trafficLayer.setMap(map)
         httpGet("https://data.cityofberkeley.info/resource/s24d-wsnp.json");
         setInterval(function(){ spawnCircles(crimemap, map);}, 3000);
         setInterval(function(){ httpGet("https://data.cityofberkeley.info/resource/s24d-wsnp.json");}, 10000);
       }
 
-
     function spawnCircles(circlemap, map){
       for (var crime in crimemap) {
-
-          // Add the circle for this crime to the map.
-                  // setTimeout(function(){ alert("Hello"); }, 3000);
-
           if (!circleSet.has(crime)) {
             createCircle(crimemap[crime], map, crime);
             circleSet.add(crime);
             audio.play();
           }
         }
-
         function createCircle(crimeLoc, map, title) {
           var type = title.split(" ")[0];
           var _radius = 30;
@@ -223,7 +209,6 @@
           }
           var rMin = _radius;
           var rMax = _radius;
-    
           var circleOption = {
             center: crimeLoc.center,
             fillColor: color,
@@ -238,17 +223,16 @@
           var infowindow = new google.maps.InfoWindow();
           var circleJSON = jsonmap[title];
           console.log(circleJSON);
-          var labelText = "<h4>" + circleJSON.offense + "</h4>" + "LOCATION: " + circleJSON.blkaddr + "<br> DATE: " + circleJSON.eventdt.slice(0,10) + "<br> TIME: " + circleJSON.eventtm;
-
+          var labelText = "<h4>" + circleJSON.offense + "</h4>" + "LOCATION: " + circleJSON.blkaddr + 
+                          "<br> DATE: " + circleJSON.eventdt.slice(0,10) + "<br> TIME: " + circleJSON.eventtm;
           google.maps.event.addListener(circle, 'mouseover', function(e) {
             infowindow.setContent(labelText);
             infowindow.setPosition(this.getCenter());
             infowindow.open(map);
             google.maps.event.addListenerOnce(map, 'mousemove', function(e) {
             infowindow.close();
+            });
           });
-          });
-
           var circleTimer = setInterval(function() {
             var radius = circle.getRadius();
             if (circleOption.fillOpacity > fillOpacity || circleOption.fillOpacity < 0.1) {
@@ -259,10 +243,6 @@
           }, 100);
         }
     }
-
-
-
-
     </script>
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCKYDCHGyzBpajCH_DSt4GjnpFoLmsJf-k&callback=initMap">
