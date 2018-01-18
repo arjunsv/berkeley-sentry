@@ -1,5 +1,4 @@
 # berkeley-sentry
 
-Coming soon ... 
-
-![alt text](https://i.imgur.com/FNc2m5E.png)
+https://www.youtube.com/watch?v=TAckyeR-sP8&feature=youtu.be
+![alt text](https://i.imgur.com/OrasX6t.jpg)
