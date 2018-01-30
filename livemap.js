@@ -1,12 +1,9 @@
-// This example creates circles on the map, representing populations in North
-// America.
 let circleSet = new Set();
 var audio = new Audio('ping3.wav');
 var homicideAudio = new Audio('homicide.mp3');
 var robberyAudio = new Audio('robbery.mp3');
 var assaultandbatteryAudio = new Audio('assaultandbattery.mp3');
 var burglaryAudio = new Audio('burglary.mp3');
-// First, create an object containing LatLng and population for each crime.
 var crimemap = {};
 var jsonmap = {};
 
@@ -128,7 +125,7 @@ function initMap() {
       }
     }
     var xmlHttp = new XMLHttpRequest();
-    xmlHttp.open( "GET", theUrl, true ); // false for synchronous request
+    xmlHttp.open( "GET", theUrl, true );
     xmlHttp.onreadystatechange = function() {
     if (this.responseText && this.status == 200) {
         callBack(JSON.parse(this.responseText));
